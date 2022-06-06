@@ -7,7 +7,6 @@
 #include "fat.h"
 #include "fat_file.h"
 
-
 /**
  * Write inside one block in the filesystem.
  * @param  fs           filesystem
@@ -17,7 +16,8 @@
  * @param  buffer       data buffer
  * @return              written byte count
  */
-int mini_fat_write_in_block(FAT_FILESYSTEM *fs, const int block_id, const int block_offset, const int size, const void * buffer) {
+int mini_fat_write_in_block(FAT_FILESYSTEM *fs, const int block_id, const int block_offset, const int size, const void *buffer)
+{
 	assert(block_offset >= 0);
 	assert(block_offset < fs->block_size);
 	assert(size + block_offset <= fs->block_size);
@@ -38,7 +38,8 @@ int mini_fat_write_in_block(FAT_FILESYSTEM *fs, const int block_id, const int bl
  * @param  buffer       buffer to write the read stuff to
  * @return              read byte count
  */
-int mini_fat_read_in_block(FAT_FILESYSTEM *fs, const int block_id, const int block_offset, const int size, void * buffer) {
+int mini_fat_read_in_block(FAT_FILESYSTEM *fs, const int block_id, const int block_offset, const int size, void *buffer)
+{
 	assert(block_offset >= 0);
 	assert(block_offset < fs->block_size);
 	assert(size + block_offset <= fs->block_size);
@@ -50,12 +51,12 @@ int mini_fat_read_in_block(FAT_FILESYSTEM *fs, const int block_id, const int blo
 	return read;
 }
 
-
 /**
  * Find the first empty block in filesystem.
  * @return -1 on failure, index of block on success
  */
-int mini_fat_find_empty_block(const FAT_FILESYSTEM *fat) {
+int mini_fat_find_empty_block(const FAT_FILESYSTEM *fat)
+{
 	// TODO: find an empty block in fat and return its index.
 
 	return -1;
@@ -66,7 +67,8 @@ int mini_fat_find_empty_block(const FAT_FILESYSTEM *fat) {
  * i.e., set block_map[new_block_index] to the specified type.
  * @return -1 on failure, new_block_index on success
  */
-int mini_fat_allocate_new_block(FAT_FILESYSTEM *fs, const unsigned char block_type) {
+int mini_fat_allocate_new_block(FAT_FILESYSTEM *fs, const unsigned char block_type)
+{
 	int new_block_index = mini_fat_find_empty_block(fs);
 	if (new_block_index == -1)
 	{
@@ -77,20 +79,24 @@ int mini_fat_allocate_new_block(FAT_FILESYSTEM *fs, const unsigned char block_ty
 	return new_block_index;
 }
 
-void mini_fat_dump(const FAT_FILESYSTEM *fat) {
+void mini_fat_dump(const FAT_FILESYSTEM *fat)
+{
 	printf("Dumping fat with %d blocks of size %d:\n", fat->block_count, fat->block_size);
-	for (int i=0; i<fat->block_count;++i) {
+	for (int i = 0; i < fat->block_count; ++i)
+	{
 		printf("%d ", (int)fat->block_map[i]);
 	}
 	printf("\n");
 
-	for (int i=0; i<fat->files.size(); ++i) {
+	for (int i = 0; i < fat->files.size(); ++i)
+	{
 		mini_file_dump(fat, fat->files[i]);
 	}
 }
 
-static FAT_FILESYSTEM * mini_fat_create_internal(const char * filename, const int block_size, const int block_count) {
-	FAT_FILESYSTEM * fat = new FAT_FILESYSTEM;
+static FAT_FILESYSTEM *mini_fat_create_internal(const char *filename, const int block_size, const int block_count)
+{
+	FAT_FILESYSTEM *fat = new FAT_FILESYSTEM;
 	fat->filename = filename;
 	fat->block_size = block_size;
 	fat->block_count = block_count;
@@ -108,11 +114,14 @@ static FAT_FILESYSTEM * mini_fat_create_internal(const char * filename, const in
  * @param  block_count number of blocks
  * @return             FAT_FILESYSTEM pointer with parameters set.
  */
-FAT_FILESYSTEM * mini_fat_create(const char * filename, const int block_size, const int block_count) {
+FAT_FILESYSTEM *mini_fat_create(const char *filename, const int block_size, const int block_count)
+{
 
-	FAT_FILESYSTEM * fat = mini_fat_create_internal(filename, block_size, block_count);
+	FAT_FILESYSTEM *fat = mini_fat_create_internal(filename, block_size, block_count);
 
 	// TODO: create the corresponding virtual disk file with appropriate size.
+	FAT_FILE *fat_file = mini_file_create_file(fat, fat->filename);
+
 	return fat;
 }
 
@@ -125,9 +134,11 @@ FAT_FILESYSTEM * mini_fat_create(const char * filename, const int block_size, co
  * @param  fat virtual disk filesystem
  * @return     true on success
  */
-bool mini_fat_save(const FAT_FILESYSTEM *fat) {
-	FILE * fat_fd = fopen(fat->filename, "r+");
-	if (fat_fd == NULL) {
+bool mini_fat_save(const FAT_FILESYSTEM *fat)
+{
+	FILE *fat_fd = fopen(fat->filename, "r+");
+	if (fat_fd == NULL)
+	{
 		perror("Cannot save fat to file");
 		return false;
 	}
@@ -136,16 +147,18 @@ bool mini_fat_save(const FAT_FILESYSTEM *fat) {
 	return true;
 }
 
-FAT_FILESYSTEM * mini_fat_load(const char *filename) {
-	FILE * fat_fd = fopen(filename, "r+");
-	if (fat_fd == NULL) {
+FAT_FILESYSTEM *mini_fat_load(const char *filename)
+{
+	FILE *fat_fd = fopen(filename, "r+");
+	if (fat_fd == NULL)
+	{
 		perror("Cannot load fat from file");
 		exit(-1);
 	}
 	// TODO: load all metadata (filesystem metadata, file metadata) and create filesystem.
 
 	int block_size = 1024, block_count = 10;
-	FAT_FILESYSTEM * fat = mini_fat_create_internal(filename, block_size, block_count);
+	FAT_FILESYSTEM *fat = mini_fat_create_internal(filename, block_size, block_count);
 
 	return fat;
 }
